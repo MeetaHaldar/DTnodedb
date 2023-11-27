@@ -1,7 +1,7 @@
 import expres from "express";
 import multer from "multer";
 import { ObjectId } from "mongodb";
-
+import { bodyValidator } from "../middleware/bodyValidator.mjs";
 import { eventCollection as db } from "../db.mjs";
 import { isValidObjectId } from "../middleware/isValidObjectId.mjs";
 import { eventParamValidate } from "../middleware/eventParamValidate.mjs";
@@ -52,7 +52,7 @@ eventsRouter.post("/", upload.array("file", 10), async (req, res) => {
   const event = req.body;
   const files = req.files;
 
-  if (files.length > 0) {
+  if (files != null && files.length > 0) {
     try {
       var publicURL = [];
       for (const a of files) {
@@ -64,10 +64,13 @@ eventsRouter.post("/", upload.array("file", 10), async (req, res) => {
       res.json({ error });
     }
   } else {
-    const result = await db.insertOne({ ...event });
-    if (result.insertedCount > 0) {
-      res.json({ ...event });
-    } else res.json({ error: "Error in creating event" });
+    try { await db.insertOne({ ...event });
+    res.json({...event})
+      
+    } catch (error) {
+      res.json({error})
+    }
+   
   }
 });
 
@@ -110,8 +113,10 @@ eventsRouter.delete("/:id", isValidObjectId, async (req, res) => {
       throw 'object not found';
     }
     const myURL = result.file;
-    console.log(myURL);
-    await deleteFile(myURL);
+    if(myURL){
+      await deleteFile(myURL);
+    }
+    
     await db.deleteOne({ _id: objectID });
     res.json({ data: objectID });
   } catch (error) {

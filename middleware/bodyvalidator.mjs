@@ -1,4 +1,4 @@
-module.exports = function bodyValidator(req, res, next) {
+export function bodyValidator(req, res, next) {
     var {
         name,
         files,
@@ -12,6 +12,10 @@ module.exports = function bodyValidator(req, res, next) {
     } = req.body;
 
     var error = [];
+    for (let x in req.body) {
+        console.log(req.body[x])
+        req.body[x]
+      }
 
     if (name == null || typeof name != "string") {
         error.push("name is required");
